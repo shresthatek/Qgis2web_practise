@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css"><link rel="stylesheet" href="css/L.Control.Locate.min.css">
+        <link rel="stylesheet" href="css/qgis2web.css"><link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/filter.css">
+<link rel="stylesheet" href="css/nouislider.min.css">
+        <link rel="stylesheet" href="css/leaflet-control-geocoder.Geocoder.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title>Daylight In US</title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script><script src="js/L.Control.Locate.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet-control-geocoder.Geocoder.js"></script>
+        <script src="js/tailDT.js"></script>
+<script src="js/nouislider.min.js"></script>
+<script src="js/wNumb.js"></script>
+        <script src="data/Population_1.js"></script>
+        <script src="data/uscities_mainland_2.js"></script>
+        <script>
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString') {
+              highlightLayer.setStyle({
+                color: '#ff00ee',
+              });
+            } else {
+              highlightLayer.setStyle({
+                fillColor: '#ff00ee',
+                fillOpacity: 1
+              });
+            }
+            highlightLayer.openPopup();
+        }
+        var map = L.map('map', {
+            zoomControl:true, maxZoom:28, minZoom:1
+        })
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        L.control.locate({locateOptions: {maxZoom: 19}}).addTo(map);
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+            if (bounds_group.getLayers().length) {
+                map.fitBounds(bounds_group.getBounds());
+            }
+        }
+        map.createPane('pane_Positronnolabelsretina_0');
+        map.getPane('pane_Positronnolabelsretina_0').style.zIndex = 400;
+        var layer_Positronnolabelsretina_0 = L.tileLayer('https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}@2x.png', {
+            pane: 'pane_Positronnolabelsretina_0',
+            opacity: 1.0,
+            attribution: '<a href="https://cartodb.com/basemaps/">Map tiles by CartoDB, under CC BY 3.0. Data by OpenStreetMap, under ODbL.</a>',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 20
+        });
+        layer_Positronnolabelsretina_0;
+        map.addLayer(layer_Positronnolabelsretina_0);
+        function pop_Population_1(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">City Name</th>\
+                        <td>' + (feature.properties['city'] !== null ? autolinker.link(feature.properties['city'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">State Name</th>\
+                        <td>' + (feature.properties['state_name'] !== null ? autolinker.link(feature.properties['state_name'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Population</th>\
+                        <td>' + (feature.properties['population'] !== null ? autolinker.link(feature.properties['population'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">density</th>\
+                        <td>' + (feature.properties['density'] !== null ? autolinker.link(feature.properties['density'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Time Zone</th>\
+                        <td>' + (feature.properties['timezone'] !== null ? autolinker.link(feature.properties['timezone'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Sunrise</th>\
+                        <td>' + (feature.properties['sunrise_lo'] !== null ? autolinker.link(feature.properties['sunrise_lo'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Day Length</th>\
+                        <td>' + (feature.properties['day_length'] !== null ? autolinker.link(feature.properties['day_length'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Day Light</th>\
+                        <td>' + (feature.properties['daylight'] !== null ? autolinker.link(feature.properties['daylight'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Maximun Sunset</th>\
+                        <td>' + (feature.properties['max_sunset'] !== null ? autolinker.link(feature.properties['max_sunset'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_Population_1_0() {
+            return {
+                pane: 'pane_Population_1',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(31,120,180,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Population_1');
+        map.getPane('pane_Population_1').style.zIndex = 401;
+        map.getPane('pane_Population_1').style['mix-blend-mode'] = 'normal';
+        var layer_Population_1 = new L.geoJson(json_Population_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Population_1',
+            layerName: 'layer_Population_1',
+            pane: 'pane_Population_1',
+            onEachFeature: pop_Population_1,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.circleMarker(latlng, style_Population_1_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_Population_1);
+        map.addLayer(layer_Population_1);
+        function pop_uscities_mainland_2(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">City Name</th>\
+                        <td>' + (feature.properties['city'] !== null ? autolinker.link(feature.properties['city'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">State Name</th>\
+                        <td>' + (feature.properties['state_name'] !== null ? autolinker.link(feature.properties['state_name'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Population</th>\
+                        <td>' + (feature.properties['population'] !== null ? autolinker.link(feature.properties['population'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">density</th>\
+                        <td>' + (feature.properties['density'] !== null ? autolinker.link(feature.properties['density'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Time Zone</th>\
+                        <td>' + (feature.properties['timezone'] !== null ? autolinker.link(feature.properties['timezone'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Sunrise</th>\
+                        <td>' + (feature.properties['sunrise_lo'] !== null ? autolinker.link(feature.properties['sunrise_lo'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Day Length</th>\
+                        <td>' + (feature.properties['day_length'] !== null ? autolinker.link(feature.properties['day_length'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Day Light</th>\
+                        <td>' + (feature.properties['daylight'] !== null ? autolinker.link(feature.properties['daylight'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Maximum Population</th>\
+                        <td>' + (feature.properties['max_pop'] !== null ? autolinker.link(feature.properties['max_pop'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Maximun Sunset</th>\
+                        <td>' + (feature.properties['max_sunset'] !== null ? autolinker.link(feature.properties['max_sunset'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_uscities_mainland_2_0(feature) {
+            switch(String(feature.properties['max_sunset'])) {
+                case '4:15 pm':
+                    return {
+                pane: 'pane_uscities_mainland_2',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(3,5,26,1.0)',
+                interactive: true,
+            }
+                    break;
+                case '4:30 pm':
+                    return {
+                pane: 'pane_uscities_mainland_2',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(54,25,63,1.0)',
+                interactive: true,
+            }
+                    break;
+                case '4:45 pm':
+                    return {
+                pane: 'pane_uscities_mainland_2',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(112,31,87,1.0)',
+                interactive: true,
+            }
+                    break;
+                case '5:00 pm':
+                    return {
+                pane: 'pane_uscities_mainland_2',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(174,23,89,1.0)',
+                interactive: true,
+            }
+                    break;
+                case '5:15 pm':
+                    return {
+                pane: 'pane_uscities_mainland_2',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(225,51,66,1.0)',
+                interactive: true,
+            }
+                    break;
+                case '5:30 pm':
+                    return {
+                pane: 'pane_uscities_mainland_2',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(243,120,82,1.0)',
+                interactive: true,
+            }
+                    break;
+                case '5:45 pm':
+                    return {
+                pane: 'pane_uscities_mainland_2',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(246,181,144,1.0)',
+                interactive: true,
+            }
+                    break;
+                case '5:50 pm':
+                    return {
+                pane: 'pane_uscities_mainland_2',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(250,235,221,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_uscities_mainland_2');
+        map.getPane('pane_uscities_mainland_2').style.zIndex = 402;
+        map.getPane('pane_uscities_mainland_2').style['mix-blend-mode'] = 'normal';
+        var layer_uscities_mainland_2 = new L.geoJson(json_uscities_mainland_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_uscities_mainland_2',
+            layerName: 'layer_uscities_mainland_2',
+            pane: 'pane_uscities_mainland_2',
+            onEachFeature: pop_uscities_mainland_2,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.circleMarker(latlng, style_uscities_mainland_2_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_uscities_mainland_2);
+        map.addLayer(layer_uscities_mainland_2);
+            var title = new L.Control();
+            title.onAdd = function (map) {
+                this._div = L.DomUtil.create('div', 'info');
+                this.update();
+                return this._div;
+            };
+            title.update = function () {
+                this._div.innerHTML = '<h2>Daylight In US</h2>';
+            };
+            title.addTo(map);
+            var abstract = new L.Control({'position':'bottomleft'});
+            abstract.onAdd = function (map) {
+                this._div = L.DomUtil.create('div',
+                'leaflet-control abstract');
+                this._div.id = 'abstract'
+
+                    abstract.show();
+                    return this._div;
+                };
+                abstract.show = function () {
+                    this._div.classList.remove("abstract");
+                    this._div.classList.add("abstractUncollapsed");
+                    this._div.innerHTML = 'This Map is Created by Tek Bahadur Shrestha for Practise purpose';
+            };
+            abstract.addTo(map);
+        var osmGeocoder = new L.Control.Geocoder({
+            collapsed: true,
+            position: 'topleft',
+            text: 'Search',
+            title: 'Testing'
+        }).addTo(map);
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .className += ' fa fa-search';
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .title += 'Search for a place';
+        var baseMaps = {};
+        L.control.layers(baseMaps,{'uscities_mainland<br /><table><tr><td style="text-align: center;"><img src="legend/uscities_mainland_2_Before415pm0.png" /></td><td>Before 4:15 pm</td></tr><tr><td style="text-align: center;"><img src="legend/uscities_mainland_2_415430pm1.png" /></td><td>4:15-4:30 pm</td></tr><tr><td style="text-align: center;"><img src="legend/uscities_mainland_2_430445pm2.png" /></td><td>4:30-4:45 pm</td></tr><tr><td style="text-align: center;"><img src="legend/uscities_mainland_2_445500pm3.png" /></td><td>4:45-5:00 pm</td></tr><tr><td style="text-align: center;"><img src="legend/uscities_mainland_2_500515pm4.png" /></td><td>5:00-5:15 pm</td></tr><tr><td style="text-align: center;"><img src="legend/uscities_mainland_2_515530pm5.png" /></td><td>5:15-5:30 pm</td></tr><tr><td style="text-align: center;"><img src="legend/uscities_mainland_2_530545pm6.png" /></td><td>5:30-5:45 pm</td></tr><tr><td style="text-align: center;"><img src="legend/uscities_mainland_2_After550pm7.png" /></td><td>After 5:50 pm</td></tr></table>': layer_uscities_mainland_2,'<img src="legend/Population_1.png" /> Population': layer_Population_1,"Positron [no labels] (retina)": layer_Positronnolabelsretina_0,}).addTo(map);
+        setBounds();
+        var mapDiv = document.getElementById('map');
+        var row = document.createElement('div');
+        row.className="row";
+        row.id="all";
+        row.style.height = "100%";
+        var col1 = document.createElement('div');
+        col1.className="col9";
+        col1.id = "mapWindow";
+        col1.style.height = "99%";
+        col1.style.width = "80%";
+        col1.style.display = "inline-block";
+        var col2 = document.createElement('div');
+        col2.className="col3";
+        col2.id = "menu";
+        col2.style.display = "inline-block";
+        mapDiv.parentNode.insertBefore(row, mapDiv);
+        document.getElementById("all").appendChild(col1);
+        document.getElementById("all").appendChild(col2);
+        col1.appendChild(mapDiv)
+        var Filters = {"population": "int","state_name": "str"};
+        function filterFunc() {
+          map.eachLayer(function(lyr){
+          if ("options" in lyr && "dataVar" in lyr["options"]){
+            features = this[lyr["options"]["dataVar"]].features.slice(0);
+            try{
+              for (key in Filters){
+                keyS = key.replace(/[^a-zA-Z0-9_]/g, "")
+                if (Filters[key] == "str" || Filters[key] == "bool"){
+                  var selection = [];
+                  var options = document.getElementById("sel_" + keyS).options
+                  for (var i=0; i < options.length; i++) {
+                    if (options[i].selected) selection.push(options[i].value);
+                  }
+                    try{
+                      if (key in features[0].properties){
+                        for (i = features.length - 1;
+                          i >= 0; --i){
+                          if (selection.indexOf(
+                          features[i].properties[key])<0
+                          && selection.length>0) {
+                          features.splice(i,1);
+                          }
+                        }
+                      }
+                    } catch(err){
+                  }
+                }
+                if (Filters[key] == "int"){
+                  sliderVals =  document.getElementById(
+                    "div_" + keyS).noUiSlider.get();
+                  try{
+                    if (key in features[0].properties){
+                    for (i = features.length - 1; i >= 0; --i){
+                      if (parseInt(features[i].properties[key])
+                          < sliderVals[0]
+                          || parseInt(features[i].properties[key])
+                          > sliderVals[1]){
+                            features.splice(i,1);
+                          }
+                        }
+                      }
+                    } catch(err){
+                    }
+                  }
+                if (Filters[key] == "real"){
+                  sliderVals =  document.getElementById(
+                    "div_" + keyS).noUiSlider.get();
+                  try{
+                    if (key in features[0].properties){
+                    for (i = features.length - 1; i >= 0; --i){
+                      if (features[i].properties[key]
+                          < sliderVals[0]
+                          || features[i].properties[key]
+                          > sliderVals[1]){
+                            features.splice(i,1);
+                          }
+                        }
+                      }
+                    } catch(err){
+                    }
+                  }
+                if (Filters[key] == "date"
+                  || Filters[key] == "datetime"
+                  || Filters[key] == "time"){
+                  try{
+                    if (key in features[0].properties){
+                      HTMLkey = key.replace(/[&\/\\#,+()$~%.'":*?<>{} ]/g, '');
+                      startdate = document.getElementById("dat_" +
+                        HTMLkey + "_date1").value.replace(" ", "T");
+                      enddate = document.getElementById("dat_" +
+                        HTMLkey + "_date2").value.replace(" ", "T");
+                      for (i = features.length - 1; i >= 0; --i){
+                        if (features[i].properties[key] < startdate
+                          || features[i].properties[key] > enddate){
+                          features.splice(i,1);
+                        }
+                      }
+                    }
+                  } catch(err){
+                  }
+                }
+              }
+            } catch(err){
+            }
+          this[lyr["options"]["layerName"]].clearLayers();
+          this[lyr["options"]["layerName"]].addData(features);
+          }
+          })
+        }
+            document.getElementById("menu").appendChild(
+                document.createElement("div"));
+            var div_population = document.createElement("div");
+            div_population.id = "div_population";
+            div_population.className = "slider";
+            document.getElementById("menu").appendChild(div_population);
+            var lab_population = document.createElement('div');
+            lab_population.innerHTML  = 'population: <span id="val_population"></span>';
+            lab_population.className = 'filterlabel';
+            document.getElementById("menu").appendChild(lab_population);
+            var reset_population = document.createElement('div');
+            reset_population.innerHTML = 'clear filter';
+            reset_population.className = 'filterlabel';
+            lab_population.className = 'filterlabel';
+            reset_population.onclick = function() {
+                sel_population.noUiSlider.reset();
+            };
+            document.getElementById("menu").appendChild(reset_population);
+            var sel_population = document.getElementById('div_population');
+            noUiSlider.create(sel_population, {
+                connect: true,
+                start: [49848, 18713220],
+                step: 1,
+                format: wNumb({
+                    decimals: 0,
+                    }),
+                range: {
+                min: 49848,
+                max: 18713220
+                }
+            });
+            sel_population.noUiSlider.on('update', function (values) {
+            filterVals =[];
+            for (value in values){
+            filterVals.push(parseInt(value))
+            }
+            val_population = document.getElementById('val_population');
+            val_population.innerHTML = values.join(' - ');
+                filterFunc()
+            });
+            document.getElementById("menu").appendChild(
+                document.createElement("div"));
+            var div_state_name = document.createElement('div');
+            div_state_name.id = "div_state_name";
+            div_state_name.className= "filterselect";
+            document.getElementById("menu").appendChild(div_state_name);
+            sel_state_name = document.createElement('select');
+            sel_state_name.multiple = true;
+            sel_state_name.size = 10;
+            sel_state_name.id = "sel_state_name";
+            var state_name_options_str = "<option value='' unselected></option>";
+            sel_state_name.onchange = function(){filterFunc()};
+            state_name_options_str  += '<option value="Alabama">Alabama</option>';
+            state_name_options_str  += '<option value="Arizona">Arizona</option>';
+            state_name_options_str  += '<option value="Arkansas">Arkansas</option>';
+            state_name_options_str  += '<option value="California">California</option>';
+            state_name_options_str  += '<option value="Colorado">Colorado</option>';
+            state_name_options_str  += '<option value="Connecticut">Connecticut</option>';
+            state_name_options_str  += '<option value="Delaware">Delaware</option>';
+            state_name_options_str  += '<option value="District of Columbia">District of Columbia</option>';
+            state_name_options_str  += '<option value="Florida">Florida</option>';
+            state_name_options_str  += '<option value="Georgia">Georgia</option>';
+            state_name_options_str  += '<option value="Idaho">Idaho</option>';
+            state_name_options_str  += '<option value="Illinois">Illinois</option>';
+            state_name_options_str  += '<option value="Indiana">Indiana</option>';
+            state_name_options_str  += '<option value="Iowa">Iowa</option>';
+            state_name_options_str  += '<option value="Kansas">Kansas</option>';
+            state_name_options_str  += '<option value="Kentucky">Kentucky</option>';
+            state_name_options_str  += '<option value="Louisiana">Louisiana</option>';
+            state_name_options_str  += '<option value="Maine">Maine</option>';
+            state_name_options_str  += '<option value="Maryland">Maryland</option>';
+            state_name_options_str  += '<option value="Massachusetts">Massachusetts</option>';
+            state_name_options_str  += '<option value="Michigan">Michigan</option>';
+            state_name_options_str  += '<option value="Minnesota">Minnesota</option>';
+            state_name_options_str  += '<option value="Mississippi">Mississippi</option>';
+            state_name_options_str  += '<option value="Missouri">Missouri</option>';
+            state_name_options_str  += '<option value="Montana">Montana</option>';
+            state_name_options_str  += '<option value="Nebraska">Nebraska</option>';
+            state_name_options_str  += '<option value="Nevada">Nevada</option>';
+            state_name_options_str  += '<option value="New Hampshire">New Hampshire</option>';
+            state_name_options_str  += '<option value="New Jersey">New Jersey</option>';
+            state_name_options_str  += '<option value="New Mexico">New Mexico</option>';
+            state_name_options_str  += '<option value="New York">New York</option>';
+            state_name_options_str  += '<option value="North Carolina">North Carolina</option>';
+            state_name_options_str  += '<option value="North Dakota">North Dakota</option>';
+            state_name_options_str  += '<option value="Ohio">Ohio</option>';
+            state_name_options_str  += '<option value="Oklahoma">Oklahoma</option>';
+            state_name_options_str  += '<option value="Oregon">Oregon</option>';
+            state_name_options_str  += '<option value="Pennsylvania">Pennsylvania</option>';
+            state_name_options_str  += '<option value="Rhode Island">Rhode Island</option>';
+            state_name_options_str  += '<option value="South Carolina">South Carolina</option>';
+            state_name_options_str  += '<option value="South Dakota">South Dakota</option>';
+            state_name_options_str  += '<option value="Tennessee">Tennessee</option>';
+            state_name_options_str  += '<option value="Texas">Texas</option>';
+            state_name_options_str  += '<option value="Utah">Utah</option>';
+            state_name_options_str  += '<option value="Vermont">Vermont</option>';
+            state_name_options_str  += '<option value="Virginia">Virginia</option>';
+            state_name_options_str  += '<option value="Washington">Washington</option>';
+            state_name_options_str  += '<option value="West Virginia">West Virginia</option>';
+            state_name_options_str  += '<option value="Wisconsin">Wisconsin</option>';
+            state_name_options_str  += '<option value="Wyoming">Wyoming</option>';
+            sel_state_name.innerHTML = state_name_options_str;
+            div_state_name.appendChild(sel_state_name);
+            var lab_state_name = document.createElement('div');
+            lab_state_name.innerHTML = 'state_name';
+            lab_state_name.className = 'filterlabel';
+            div_state_name.appendChild(lab_state_name);
+            var reset_state_name = document.createElement('div');
+            reset_state_name.innerHTML = 'clear filter';
+            reset_state_name.className = 'filterlabel';
+            reset_state_name.onclick = function() {
+                var options = document.getElementById("sel_state_name").options;
+                for (var i=0; i < options.length; i++) {
+                    options[i].selected = false;
+                }
+                filterFunc();
+            };
+            div_state_name.appendChild(reset_state_name);
+        </script>
+    </body>
+</html>
